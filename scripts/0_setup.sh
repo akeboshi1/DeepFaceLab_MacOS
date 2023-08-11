@@ -17,12 +17,16 @@ if [ ! -d .dfl/DeepFaceLab ]; then
   git clone --no-single-branch --depth 1 "https://github.com/chychkan/DeepFaceLab.git" .dfl/DeepFaceLab
 
   if is_arm64; then
-    (cd .dfl/DeepFaceLab; git checkout support-arm64)
+    echo "is arm64"
+    (
+      cd .dfl/DeepFaceLab
+      git checkout support-arm64
+    )
   fi
 fi
 
 if [ ! -d .dfl/env ]; then
-  virtualenv -p python3 .dfl/env
+  virtualenv -p python3.10 .dfl/env
 fi
 
 source .dfl/env/bin/activate
@@ -34,6 +38,7 @@ reqs_file='requirements.txt'
 
 version_suffix=''
 if [[ ! -z "$version" && -f "requirements_$version.txt" ]]; then
+  echo "$version"
   version_suffix="_$version"
 fi
 
@@ -47,6 +52,7 @@ reqs_file="requirements${version_suffix}${architecture_suffix}.txt"
 echo "Using $reqs_file for $(python -V)"
 
 if is_arm64; then
+  echo "enter is_arm64"
   if [[ -z "$(brew ls --versions hdf5)" ]]; then
     echo "ERROR: HDF5 needs to be installed to run DeepFaceLab on M1 chip."
     echo "You can install it with 'brew install hdf5'. For more details, see https://formulae.brew.sh/formula/hdf5"
@@ -54,16 +60,23 @@ if is_arm64; then
     exit 1
   fi
 
-  cython_pkg="$(cat $reqs_file | grep -E 'cython==.+')"
-  pip --no-cache-dir install "$cython_pkg"
+  # echo "cython_pkg 0"
+  # cython_pkg="$(cat $reqs_file | grep -E 'cython==.+')"
+  # echo "cython_pkg 1"
+  # pip --no-cache-dir install "$cython_pkg"
 
   numpy_pkg="$(cat $reqs_file | grep -E 'numpy==.+')"
+  echo "numpy_pkg"
   pip install "$numpy_pkg"
 
   h5py_pkg="$(cat $reqs_file | grep -E 'h5py==.+')"
   HDF5_DIR="$(brew --prefix hdf5)" pip --no-cache-dir install --no-build-isolation "$h5py_pkg"
 elif [ "$version" == "3.10" ]; then
-  (cd .dfl/DeepFaceLab; git checkout support-opencv45)
+  echo "enter 3.10"
+  (
+    cd .dfl/DeepFaceLab
+    git checkout support-opencv45
+  )
 
   numpy_pkg="$(cat $reqs_file | grep -E 'numpy==.+')"
   pip install "$numpy_pkg"
